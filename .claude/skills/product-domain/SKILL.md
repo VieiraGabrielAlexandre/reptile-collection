@@ -8,7 +8,7 @@ disable-model-invocation: false
 user-invocable: true
 model: inherit
 effort: high
-------------
+---
 
 # Product Domain
 

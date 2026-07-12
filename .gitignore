@@ -1,0 +1,27 @@
+# Environment
+.env
+
+# Go
+apps/api/bin/
+*.test
+*.out
+
+# Node (frontend, once it exists)
+node_modules/
+dist/
+build/
+coverage/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfplan
+
+# Editor / OS
+.DS_Store
+*.swp
+
+# IDE
+.idea/
+.vscode/

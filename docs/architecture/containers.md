@@ -43,4 +43,11 @@ The Go API is a **modular monolith**. Planned modules: `taxonomy`, `species`, `a
 
 ## Current State
 
-No `apps/api` or `apps/web` directory exists yet. This document will be updated with an "as-built" section once Phase 0 backend and frontend foundations are implemented.
+`apps/api` exists as a minimal Go module (`github.com/VieiraGabrielAlexandre/reptile-collection/apps/api`) with only a `platform` layer so far:
+
+* `cmd/api` — process entrypoint, config loading, graceful shutdown;
+* `internal/platform/config` — typed, validated environment configuration;
+* `internal/platform/httpserver` — chi router, panic recovery, correlation-ID middleware, structured request-logging middleware, server lifecycle;
+* `internal/platform/health` — `GET /health` and `GET /ready` handlers.
+
+No domain module (`taxonomy`, `species`, `articles`, etc.) exists yet — there is no business logic to justify one. `apps/web` does not exist yet.

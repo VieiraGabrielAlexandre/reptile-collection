@@ -1,43 +1,60 @@
 # Local Development Setup
 
-Status: **Planned.** No implementation exists yet. This document describes the intended setup once Phase 0 local-development work is implemented; it does not describe a currently working workflow.
+Status: **Partially implemented.** The Go API backend can be built, tested, and run today. Docker Compose, the database, the frontend, and every other local service remain planned.
 
-## Prerequisites (Planned)
+## Prerequisites
+
+Currently required:
 
 * Git;
+* Go 1.24+;
+* Make.
+
+Planned, not yet required:
+
 * Docker Engine or Docker Desktop;
 * Docker Compose v2;
-* Make;
-* optional: Go and Node, for host-based execution;
+* Node, for the frontend;
 * optional: AWS CLI, for LocalStack inspection;
 * optional: Terraform, for infrastructure work;
 * optional: `sqlc`.
 
-## Intended Workflow (Not Yet Functional)
+## Current Workflow (Verified)
 
 ```bash
 cp .env.example .env
+make build
+make test
+make run
+```
+
+`make run` starts the API and blocks in the foreground; stop it with `Ctrl+C` (SIGINT) or `SIGTERM`, both of which trigger a graceful shutdown. Verified this session: `make fmt`, `make vet`, `make test`, `make build` all pass, and a manually started instance answered `GET /health` and `GET /ready` with `200` and emitted structured JSON logs including a correlation ID for each request.
+
+## Intended Full Workflow (Not Yet Functional)
+
+```bash
 make bootstrap
 make up
 make migrate
 make seed
 make validate
-make test
 ```
 
-None of `.env.example`, `Makefile`, or `compose.yaml` exist in the repository yet. Do not attempt to run the commands above until they are implemented and this document is updated to confirm they work.
+These targets do not exist yet — they depend on Docker Compose, PostgreSQL, and the frontend, none of which are implemented. Do not attempt to run them until this document is updated to confirm they work.
 
-## Planned Service URLs
+## Service URLs
 
-| Service | Browser / host URL | Container URL |
-|---|---|---|
-| Frontend | `http://localhost:3000` | `http://web:3000` |
-| Backend | `http://localhost:8080` | `http://api:8080` |
-| Backend health | `http://localhost:8080/health` | — |
-| Backend readiness | `http://localhost:8080/ready` | — |
-| Keycloak | `http://localhost:8081` | `http://keycloak:8080` |
-| Mailpit | `http://localhost:8025` | `http://mailpit:8080` |
-| LocalStack | `http://localhost:4566` | `http://localstack:4566` |
+| Service | Status | Browser / host URL | Container URL |
+|---|---|---|---|
+| Backend | **real** | `http://localhost:8080` (or `$API_PORT`) | — (no container yet) |
+| Backend health | **real** | `http://localhost:8080/health` | — |
+| Backend readiness | **real** | `http://localhost:8080/ready` | — |
+| Frontend | planned | `http://localhost:3000` | `http://web:3000` |
+| Keycloak | planned | `http://localhost:8081` | `http://keycloak:8080` |
+| Mailpit | planned | `http://localhost:8025` | `http://mailpit:8080` |
+| LocalStack | planned | `http://localhost:4566` | `http://localstack:4566` |
+
+`/ready` currently reports the same result as `/health`, since no external dependency is wired into the application yet. It must gain a real PostgreSQL check once the database increment lands — see the `Handler` doc comment in `apps/api/internal/platform/health/handler.go`.
 
 ## Planned Local Users
 

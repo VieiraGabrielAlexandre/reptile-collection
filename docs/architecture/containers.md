@@ -50,4 +50,14 @@ The Go API is a **modular monolith**. Planned modules: `taxonomy`, `species`, `a
 * `internal/platform/httpserver` — chi router, panic recovery, correlation-ID middleware, structured request-logging middleware, server lifecycle;
 * `internal/platform/health` — `GET /health` and `GET /ready` handlers.
 
-No domain module (`taxonomy`, `species`, `articles`, etc.) exists yet — there is no business logic to justify one. `apps/web` does not exist yet.
+No domain module (`taxonomy`, `species`, `articles`, etc.) exists yet — there is no business logic to justify one.
+
+`apps/web` exists as a minimal Vite + React + TypeScript + Tailwind CSS shell:
+
+* `src/main.tsx` — application entry, mounts `RouterProvider`;
+* `src/app/router` — a single-route `createBrowserRouter` configuration (`/` only);
+* `src/app/styles` — a minimal semantic design-token foundation (background, foreground, surface, border, accent, focus);
+* `src/components/layout` — `PublicLayout` (skip link + `main` landmark), `Header`, `Footer`;
+* `src/features/home/pages` — a temporary `HomePage` that explicitly states the catalog is not available yet.
+
+Nothing in `apps/web` calls `apps/api` yet — there is no `TanStack Query`, `React Hook Form`, or `Zod` usage, since nothing is fetched or submitted yet. Those will be introduced with the first real API integration in Phase 1.

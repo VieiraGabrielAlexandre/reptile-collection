@@ -21,16 +21,17 @@ Completed so far (this session):
 Also completed (this session, `/start-phase 0`):
 
 * minimal Go API (`apps/api`) exposing `GET /health` and `GET /ready`, with typed/validated config, structured JSON logging, correlation-ID middleware, request-logging middleware, panic recovery, and graceful shutdown;
-* root `.gitignore`, `.env.example`, and `Makefile` (`help`, `build`, `run`, `test`, `fmt`, `vet` — all verified working).
+* root `.gitignore`, `.env.example`, and `Makefile` (`help`, `build`, `run`, `test`, `fmt`, `vet` — all verified working);
+* minimal React frontend shell (`apps/web`): Vite + React + TypeScript + Tailwind CSS v4, ESLint (flat config), Vitest + Testing Library, React Router with a single route, a `PublicLayout` (skip link, header, footer), and a temporary `HomePage`.
 
 Not started:
 
-* `apps/web` (React frontend);
 * `compose.yaml` / Dockerfiles;
 * PostgreSQL and migrations;
 * `infrastructure/terraform` (local environment);
 * `infrastructure/keycloak`, `infrastructure/localstack`;
-* CI workflows.
+* CI workflows;
+* any connection between the frontend and the backend.
 
 ## Scope
 
@@ -65,7 +66,7 @@ See [`CLAUDE.md`](../../../CLAUDE.md) sections 25–26 for the authoritative del
 
 1. Repository and documentation (in progress — this session).
 2. Backend foundation (minimal API with health/readiness complete — this session; domain modules not started).
-3. Frontend foundation (not started).
+3. Frontend foundation (minimal shell complete — this session; not yet connected to the backend).
 4. Database foundation (not started).
 5. Local services (Docker Compose, not started).
 6. Terraform local-environment foundation (not started).
@@ -78,7 +79,7 @@ See [`CLAUDE.md`](../../../CLAUDE.md) sections 25–26 for the authoritative del
 1. ~~Governance and Claude Code configuration audit~~ (this session).
 2. ~~Documentation foundation and initial ADRs~~ (this session).
 3. ~~Minimal Go API with `/health` and `/ready`~~ (this session).
-4. Minimal React application shell.
+4. ~~Minimal React application shell~~ (this session).
 5. PostgreSQL + migration workflow.
 6. Docker Compose service definitions (Postgres, Redis, LocalStack, Keycloak, Mailpit, api, web).
 7. LocalStack S3 bucket initialization.
@@ -96,8 +97,9 @@ See [`CLAUDE.md`](../../../CLAUDE.md) sections 25–26 for the authoritative del
 * all Claude Code skills and commands are internally consistent, with no broken frontmatter (met — this session).
 * the `security` skill contains genuine security-standard content rather than a duplicate of `testing-quality` (met — this session, via `/fix-bug GOV-001`).
 * the backend builds, tests pass, and `/health`/`/ready` return `200` locally (met — this session).
-* (not yet met) `cp .env.example .env && make bootstrap && make up && make migrate && make seed && make validate && make test` succeeds from a clean checkout — `make build`/`make test`/`make run` succeed; `bootstrap`/`up`/`migrate`/`seed`/`validate` do not exist yet.
-* (not yet met) frontend, backend, health, Keycloak, Mailpit, and LocalStack are reachable at their documented local URLs — backend and health/ready are reachable; the rest are not yet implemented.
+* the frontend shell type-checks, lints, tests, and builds, and serves a `200` response with correct semantic landmarks (met — this session).
+* (not yet met) `cp .env.example .env && make bootstrap && make up && make migrate && make seed && make validate && make test` succeeds from a clean checkout — `make build`/`make test`/`make run` succeed for the backend, and `npm run {typecheck,lint,test,build,dev}` succeed for the frontend; `bootstrap`/`up`/`migrate`/`seed`/`validate` do not exist yet.
+* (not yet met) frontend, backend, health, Keycloak, Mailpit, and LocalStack are reachable at their documented local URLs — backend, health/ready, and frontend are reachable; Keycloak, Mailpit, and LocalStack are not yet implemented.
 
 ## Validation Commands
 
@@ -116,7 +118,18 @@ curl http://localhost:<port>/health
 curl http://localhost:<port>/ready
 ```
 
-Not yet applicable: `npm run build`, `docker compose config`, `terraform validate`, `sqlc generate` — no corresponding source exists yet.
+Also executed this session (frontend increment):
+
+```bash
+npm install
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+npm run preview -- --port 4321 && curl http://localhost:4321/
+```
+
+Not yet applicable: `docker compose config`, `terraform validate`, `sqlc generate` — no corresponding source exists yet.
 
 ## Risks
 
@@ -216,3 +229,43 @@ Limitations:
 Residual risk:
 
 * none identified for the implemented scope; the next increment (PostgreSQL + migrations) will need to update `/ready` to perform a real connectivity check.
+
+### Increment: Minimal React application shell
+
+Status: Complete
+
+Implemented:
+
+* `apps/web` scaffolded with Vite (`react-ts` template), then cleaned of template cruft (default `App.tsx`/`App.css`, demo assets, `oxlint`) and aligned to project conventions;
+* dependencies: `react-router-dom`; `tailwindcss` + `@tailwindcss/vite` (Tailwind v4, Vite-plugin-based, no separate PostCSS config needed); `eslint` + `@eslint/js` + `typescript-eslint` + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` (replacing the scaffold's default `oxlint`, since `CLAUDE.md`/`react-frontend` specify ESLint); `vitest` + `@vitest/ui` + `jsdom` + `@testing-library/react` + `@testing-library/jest-dom` + `@testing-library/user-event`;
+* `src/app/router/router.tsx` — `createBrowserRouter` with a single `/` route;
+* `src/app/styles/index.css` — Tailwind import plus a minimal semantic design-token set (background, foreground, surface, surface-muted, border, accent, accent-foreground, focus), including a visible `:focus-visible` outline;
+* `src/components/layout/{Header,Footer,PublicLayout}.tsx` — `PublicLayout` provides a skip link targeting `#main-content`, a `header` (banner) landmark, a `main` landmark, and a `footer` (contentinfo) landmark with an honest disclaimer (not a substitute for veterinary/medical/legal/emergency guidance);
+* `src/features/home/pages/HomePage.tsx` — a temporary home page stating the platform's purpose and explicitly noting the catalog is not available yet (no fabricated species/search content);
+* `src/main.tsx` — mounts `RouterProvider`;
+* two test files (`HomePage.test.tsx`, `PublicLayout.test.tsx`) using Testing Library role-based queries;
+* `package.json` scripts: `dev`, `build`, `preview`, `lint`, `typecheck`, `test`, `test:watch`;
+* updated `README.md`, `docs/development/local-setup.md`, `docs/architecture/containers.md` to describe only what is now real.
+
+Deliberate scope exclusions (documented, not oversights):
+
+* no TanStack Query, React Hook Form, or Zod — nothing in this shell fetches data or submits a form yet;
+* no call from the frontend to the backend `/health` endpoint — keeps this increment independently testable; will be wired naturally with the first real API integration in Phase 1.
+
+Validation:
+
+* `npm run typecheck` — passed (no output, no errors).
+* `npm run lint` — passed (no output, no errors).
+* `npm run test` — passed (2 test files, 4 tests: `HomePage` heading + "not available yet" messaging; `PublicLayout` skip link + banner/contentinfo landmarks).
+* `npm run build` — passed (`tsc -b && vite build`; produced `index.html`, a 9.85 kB CSS bundle confirming Tailwind actually generated styles, and a 286.74 kB JS bundle).
+* Runtime check: served the production build with `npm run preview` on a free port and confirmed `curl` returned `200` with the correct `<title>Reptile Collection</title>` and correct hashed asset references.
+* **Not performed:** an actual visual/browser check. No browser tool is available in this environment; verification relied on typecheck, lint, jsdom-based component tests asserting real ARIA roles (heading, link, banner, contentinfo, main), and a served-HTML smoke test. Visual layout, Tailwind rendering fidelity, and true cross-browser behavior remain unverified and should be confirmed by the project owner in an actual browser before this shell is built upon further.
+
+Limitations:
+
+* the frontend and backend are not yet connected;
+* no design review beyond this session's own token choices has occurred — colors/spacing are illustrative, per the `ux-design-system` skill's Phase 0 guidance, and are expected to evolve.
+
+Residual risk:
+
+* low; the shell is intentionally minimal and additive. The main open item is the unverified visual/browser rendering noted above.

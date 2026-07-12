@@ -9,7 +9,8 @@ This repository is being bootstrapped incrementally. As of now:
 * project governance (`CLAUDE.md`), Claude Code skills, and custom commands exist;
 * the documentation foundation described below exists;
 * a minimal Go API exists, exposing `/health` and `/ready`, with structured logging, correlation IDs, and graceful shutdown;
-* frontend, database, Docker Compose, Keycloak, LocalStack, Mailpit, Terraform, and CI do not exist yet.
+* a minimal React frontend shell exists — a public layout with a skip link, header, footer, and a single temporary home route;
+* database, Docker Compose, Keycloak, LocalStack, Mailpit, Terraform, and CI do not exist yet.
 
 See [docs/product/phases/phase-0.md](docs/product/phases/phase-0.md) for the current phase plan and completion evidence.
 
@@ -27,7 +28,7 @@ See [docs/product/vision.md](docs/product/vision.md) for the full product vision
 
 ## Current Scope
 
-Nothing beyond governance and documentation has been implemented. Application scope will be added incrementally, phase by phase — see [Roadmap](#roadmap).
+Governance, documentation, a minimal backend shell, and a minimal frontend shell exist. No product feature (species, articles, search, accounts) has been implemented. Application scope will be added incrementally, phase by phase — see [Roadmap](#roadmap).
 
 ---
 
@@ -53,9 +54,9 @@ None of the future AWS infrastructure exists today. The local environment never 
 
 ## Prerequisites
 
-Currently required: Git and Go 1.24+.
+Currently required: Git, Go 1.24+, Node.js 22+ (or a compatible LTS), and Make.
 
-Not yet required (needed once their respective increments land): Docker Engine, Docker Compose v2, Node.js, Make is already usable today for the backend targets below.
+Not yet required (needed once their respective increments land): Docker Engine, Docker Compose v2.
 
 ---
 
@@ -70,7 +71,15 @@ make test
 make run
 ```
 
-`make run` starts the API on `http://localhost:8080` (or `$API_PORT` from `.env`). The full target workflow below is **not yet functional** — `make bootstrap`, `make up`, `make migrate`, `make seed`, and `make validate` do not exist yet, since Docker Compose, the database, and the frontend have not been implemented:
+The frontend shell can be run today from `apps/web`:
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+`make run` starts the API on `http://localhost:8080` (or `$API_PORT` from `.env`). `npm run dev` starts the frontend on `http://localhost:3000`. Nothing yet connects them — the frontend does not call the backend. The full target workflow below is **not yet functional** — `make bootstrap`, `make up`, `make migrate`, `make seed`, and `make validate` do not exist yet, since Docker Compose and the database have not been implemented:
 
 ```bash
 # Not yet available:
@@ -91,12 +100,12 @@ Currently real:
 Backend:    http://localhost:8080  (make run)
 Health:     http://localhost:8080/health
 Readiness:  http://localhost:8080/ready
+Frontend:   http://localhost:3000  (npm run dev, from apps/web)
 ```
 
 Not yet implemented:
 
 ```text
-Frontend:   http://localhost:3000
 Keycloak:   http://localhost:8081
 Mailpit:    http://localhost:8025
 LocalStack: http://localhost:4566
@@ -119,7 +128,7 @@ make vet     Run go vet
 
 ## Testing and Validation
 
-Currently real, run from the repository root:
+Backend, from the repository root:
 
 ```bash
 make fmt
@@ -128,7 +137,18 @@ make test
 make build
 ```
 
-`golangci-lint` is referenced by project conventions but is not installed in this environment yet, so `make lint` is intentionally not defined until it is configured. See [docs/development/testing.md](docs/development/testing.md) for the full intended strategy once frontend, database, and infrastructure exist.
+`golangci-lint` is referenced by project conventions but is not installed in this environment yet, so `make lint` is intentionally not defined until it is configured.
+
+Frontend, from `apps/web`:
+
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
+
+See [docs/development/testing.md](docs/development/testing.md) for the full intended strategy once database and infrastructure exist.
 
 ---
 
@@ -148,14 +168,23 @@ Current structure:
 │   ├── commands/
 │   └── skills/
 ├── apps/
-│   └── api/
-│       ├── go.mod
-│       ├── go.sum
-│       ├── cmd/api/
-│       └── internal/platform/
-│           ├── config/
-│           ├── httpserver/
-│           └── health/
+│   ├── api/
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── cmd/api/
+│   │   └── internal/platform/
+│   │       ├── config/
+│   │       ├── httpserver/
+│   │       └── health/
+│   └── web/
+│       ├── package.json
+│       ├── vite.config.ts
+│       ├── eslint.config.js
+│       └── src/
+│           ├── main.tsx
+│           ├── app/{router,styles}/
+│           ├── components/layout/
+│           └── features/home/pages/
 └── docs/
     ├── product/
     ├── architecture/
@@ -164,7 +193,7 @@ Current structure:
     └── adr/
 ```
 
-The full target structure (including `apps/web`, `infrastructure/`, `compose.yaml`, `.github/workflows/`, etc.) is defined in `CLAUDE.md` and will be created incrementally as Phase 0 implementation proceeds.
+The full target structure (including `infrastructure/`, `compose.yaml`, `.github/workflows/`, etc.) is defined in `CLAUDE.md` and will be created incrementally as Phase 0 implementation proceeds.
 
 ---
 

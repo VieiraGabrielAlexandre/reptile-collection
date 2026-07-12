@@ -1,6 +1,6 @@
 # Local Development Setup
 
-Status: **Partially implemented.** The Go API backend can be built, tested, and run today. Docker Compose, the database, the frontend, and every other local service remain planned.
+Status: **Partially implemented.** The Go API backend and the React frontend shell can each be built, tested, and run today, independently. Docker Compose, the database, and every other local service remain planned. The frontend does not yet call the backend.
 
 ## Prerequisites
 
@@ -8,18 +8,20 @@ Currently required:
 
 * Git;
 * Go 1.24+;
+* Node.js 22+ (or a compatible LTS);
 * Make.
 
 Planned, not yet required:
 
 * Docker Engine or Docker Desktop;
 * Docker Compose v2;
-* Node, for the frontend;
 * optional: AWS CLI, for LocalStack inspection;
 * optional: Terraform, for infrastructure work;
 * optional: `sqlc`.
 
 ## Current Workflow (Verified)
+
+Backend:
 
 ```bash
 cp .env.example .env
@@ -28,7 +30,17 @@ make test
 make run
 ```
 
-`make run` starts the API and blocks in the foreground; stop it with `Ctrl+C` (SIGINT) or `SIGTERM`, both of which trigger a graceful shutdown. Verified this session: `make fmt`, `make vet`, `make test`, `make build` all pass, and a manually started instance answered `GET /health` and `GET /ready` with `200` and emitted structured JSON logs including a correlation ID for each request.
+`make run` starts the API and blocks in the foreground; stop it with `Ctrl+C` (SIGINT) or `SIGTERM`, both of which trigger a graceful shutdown. Verified: `make fmt`, `make vet`, `make test`, `make build` all pass, and a manually started instance answered `GET /health` and `GET /ready` with `200` and emitted structured JSON logs including a correlation ID for each request.
+
+Frontend:
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+`npm run dev` starts Vite on `http://localhost:3000`. Verified: `npm run typecheck`, `npm run lint`, `npm run test` (4 tests, Vitest + Testing Library), and `npm run build` all pass. The production build was also served with `npm run preview` and returned `200` with the correct page title and asset references.
 
 ## Intended Full Workflow (Not Yet Functional)
 
@@ -40,7 +52,7 @@ make seed
 make validate
 ```
 
-These targets do not exist yet — they depend on Docker Compose, PostgreSQL, and the frontend, none of which are implemented. Do not attempt to run them until this document is updated to confirm they work.
+These targets do not exist yet — they depend on Docker Compose and PostgreSQL, neither of which is implemented. Do not attempt to run them until this document is updated to confirm they work.
 
 ## Service URLs
 
@@ -49,7 +61,7 @@ These targets do not exist yet — they depend on Docker Compose, PostgreSQL, an
 | Backend | **real** | `http://localhost:8080` (or `$API_PORT`) | — (no container yet) |
 | Backend health | **real** | `http://localhost:8080/health` | — |
 | Backend readiness | **real** | `http://localhost:8080/ready` | — |
-| Frontend | planned | `http://localhost:3000` | `http://web:3000` |
+| Frontend | **real** | `http://localhost:3000` (`npm run dev`) | `http://web:3000` (planned, once containerized) |
 | Keycloak | planned | `http://localhost:8081` | `http://keycloak:8080` |
 | Mailpit | planned | `http://localhost:8025` | `http://mailpit:8080` |
 | LocalStack | planned | `http://localhost:4566` | `http://localstack:4566` |

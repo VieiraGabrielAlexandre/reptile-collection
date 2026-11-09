@@ -1,60 +1,48 @@
 # Testing Strategy
 
-Status: **Planned.** No test suite exists yet (Phase 0 in progress). This document describes the intended test strategy, per [`CLAUDE.md`](../../CLAUDE.md) and the `testing-quality` skill; it does not describe currently passing tests.
+Status: **Active (Phase 0 baseline).** Commands below run today. Strategy per [`CLAUDE.md`](../../CLAUDE.md) §15 and the `testing-quality` skill.
 
-## Test Pyramid (Planned)
+## Test Pyramid
 
-* **Unit tests** — domain invariants, value objects, validation, pure utilities. Fast, no network, no Docker.
-* **Integration tests** — PostgreSQL repositories, migrations, Redis behavior, LocalStack storage, Keycloak integration.
-* **End-to-end tests** — critical user journeys only (e.g. public species browsing once it exists), using Playwright.
+* **Unit tests** — domain invariants, value objects, validation, handlers with in-memory fakes. Fast, no network, no Docker. *Exists:* config and health handler tests (Go), layout and home page tests (Vitest + Testing Library).
+* **Integration tests** — PostgreSQL repositories, migrations, Redis, LocalStack storage, Keycloak. *Exists as scripted smoke checks:* `make keycloak-check`; migrations verified up/down/up manually. Go integration tests arrive with the first repository (Phase 1).
+* **End-to-end tests** — critical user journeys only, using Playwright. *Not started* (first journey: public species browsing, Phase 1).
 
-## Planned Commands
+## Commands
 
-### Backend
-
-```bash
-go test ./...
-go test -race ./...
-go vet ./...
-golangci-lint run
-```
-
-### Frontend
+Everything at once:
 
 ```bash
-npm run typecheck
-npm run lint
-npm run test
-npm run build
+make validate     # lint + typecheck + terraform validate + tests + builds + compose config
 ```
 
-### Infrastructure
+Individually:
 
-```bash
-terraform fmt -check -recursive
-terraform validate
-tflint
-```
+| Area | Command | Runs |
+|---|---|---|
+| Backend | `make test-api` | `go test -race ./...` |
+| Backend | `make fmt` / `make vet` | `gofmt -l` (fails on diff) / `go vet ./...` |
+| Backend | `make lint-api` | `golangci-lint run` (pinned image, via Docker) |
+| Frontend | `make test-web` | `npm run test` (Vitest) |
+| Frontend | `make lint-web` / `make typecheck-web` / `make build-web` | ESLint / `tsc -b` / Vite build |
+| Infrastructure | `make tf-fmt` / `make tf-validate` / `make tf-lint` | `terraform fmt -check -recursive` / `terraform validate` / tflint |
+| Local environment | `docker compose config -q` | part of `make validate` |
+| Identity | `make keycloak-check` | real PKCE login + token claims (needs `make up`) |
 
-None of these commands can currently be run — no `apps/api`, `apps/web`, or `infrastructure/terraform` directory exists yet.
+## Phase 0 Quality Baseline
 
-## Phase 0 Quality Baseline (Target)
-
-* at least one backend health-handler test;
-* Go formatting, `go vet`, lint configuration, build validation;
-* at least one frontend application-shell test;
-* TypeScript checking, ESLint, frontend build;
-* Docker Compose config validation;
-* Terraform format and validate;
-* backend, frontend, and infrastructure CI quality workflows.
+* ✅ backend health/readiness handler tests (incl. `503` without leaking errors);
+* ✅ Go formatting, `go vet`, golangci-lint, build;
+* ✅ frontend shell tests, TypeScript, ESLint, build;
+* ✅ Docker Compose config validation;
+* ✅ Terraform fmt, validate, tflint;
+* ⬜ CI workflows running all of the above (next ROADMAP step);
+* ⬜ `trivy` / `checkov` (when configured).
 
 ## General Rules
 
 * tests must be behavior-oriented, deterministic, and isolated;
+* prefer simple in-memory fakes over mocks;
 * do not remove or disable tests to make validation pass;
 * do not point tests at a shared or production-like database;
 * regression tests are required for every bug fix when practical.
-
-## Next Step
-
-This document must be updated with real, verified commands and CI job names once Phase 0 backend, frontend, and CI foundations are implemented.

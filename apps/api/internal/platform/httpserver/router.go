@@ -13,14 +13,14 @@ import (
 
 // NewRouter builds the application's HTTP router with the baseline
 // middleware chain: panic recovery, correlation ID, then request logging.
-func NewRouter(logger *slog.Logger) http.Handler {
+func NewRouter(logger *slog.Logger, database health.Pinger) http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(chimiddleware.Recoverer)
 	router.Use(correlationMiddleware)
 	router.Use(requestLoggingMiddleware(logger))
 
-	healthHandler := health.NewHandler()
+	healthHandler := health.NewHandler(logger, database)
 	router.Get("/health", healthHandler.Health)
 	router.Get("/ready", healthHandler.Ready)
 

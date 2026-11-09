@@ -1,6 +1,6 @@
 # Architecture — System Context
 
-Status: **Planned.** No part of this system is implemented yet (Phase 0 in progress). This document describes the intended context, not current running software.
+Status: **Target context.** Phase 0 runs the foundation locally (API with health checks, frontend shell, PostgreSQL, Redis, Keycloak, LocalStack, Mailpit); no product feature exists yet. Current progress: [ROADMAP.md](../../ROADMAP.md).
 
 ## Purpose
 

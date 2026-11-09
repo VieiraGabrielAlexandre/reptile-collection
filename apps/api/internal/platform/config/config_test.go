@@ -2,7 +2,11 @@ package config
 
 import "testing"
 
+const testDatabaseURL = "postgres://user:pass@localhost:5432/db?sslmode=disable"
+
 func TestLoadUsesLocalDefaultsWhenEnvironmentIsUnset(t *testing.T) {
+	t.Setenv("DATABASE_URL", testDatabaseURL)
+
 	cfg, err := Load()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -22,6 +26,7 @@ func TestLoadUsesLocalDefaultsWhenEnvironmentIsUnset(t *testing.T) {
 }
 
 func TestLoadRejectsInvalidLogLevel(t *testing.T) {
+	t.Setenv("DATABASE_URL", testDatabaseURL)
 	t.Setenv("LOG_LEVEL", "verbose")
 
 	_, err := Load()
@@ -31,6 +36,7 @@ func TestLoadRejectsInvalidLogLevel(t *testing.T) {
 }
 
 func TestLoadRejectsEmptyPort(t *testing.T) {
+	t.Setenv("DATABASE_URL", testDatabaseURL)
 	t.Setenv("API_PORT", "")
 
 	cfg, err := Load()
@@ -42,5 +48,13 @@ func TestLoadRejectsEmptyPort(t *testing.T) {
 	// treats an empty value as unset. This test documents that behavior.
 	if cfg.HTTP.Port != "8080" {
 		t.Errorf("expected fallback port '8080', got %q", cfg.HTTP.Port)
+	}
+}
+
+func TestLoadRequiresDatabaseURL(t *testing.T) {
+	t.Setenv("DATABASE_URL", "")
+
+	if _, err := Load(); err == nil {
+		t.Fatal("expected an error when DATABASE_URL is missing, got nil")
 	}
 }

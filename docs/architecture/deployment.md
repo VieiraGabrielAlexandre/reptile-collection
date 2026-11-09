@@ -1,12 +1,12 @@
 # Architecture — Deployment
 
-This document distinguishes **current local deployment** (target for Phase 0) from **future AWS deployment** (Phase 6). Neither is implemented yet — both descriptions below are planned, not current, state.
+This document distinguishes **current local deployment** (implemented in Phase 0) from **future AWS deployment** (Phase 6, not implemented).
 
-## Current: Local Deployment (Planned for Phase 0)
+## Current: Local Deployment (Implemented)
 
 Local deployment uses Docker Compose. No real AWS account or credentials are required.
 
-Planned services and ports:
+Services and ports (`compose.yaml`; details in [local-setup.md](../development/local-setup.md)):
 
 ```text
 Frontend:   http://localhost:3000
@@ -16,9 +16,10 @@ Readiness:  http://localhost:8080/ready
 Keycloak:   http://localhost:8081
 Mailpit:    http://localhost:8025
 LocalStack: http://localhost:4566
+PostgreSQL: localhost:5433 (host tools only)
 ```
 
-PostgreSQL and Redis run as Docker Compose services and are exposed to the host only as needed for local tooling. LocalStack emulates the S3 bucket used for media storage; RDS is never emulated locally — local PostgreSQL runs directly via Docker Compose. Terraform may manage the local S3 bucket (and, later, other LocalStack-supported resources) through a dedicated `local` environment that points at LocalStack endpoints with dummy credentials.
+PostgreSQL and Redis run as Docker Compose services and are exposed to the host only as needed for local tooling. LocalStack emulates the S3 bucket used for media storage; RDS is never emulated locally — local PostgreSQL runs directly via Docker Compose. Terraform manages the local S3 media bucket through `infrastructure/terraform/environments/local`, which points only at LocalStack endpoints with dummy credentials. Keycloak imports its realm from `infrastructure/keycloak/import/`.
 
 ## Future: AWS Deployment (Planned for Phase 6)
 

@@ -24,13 +24,31 @@ Also completed (this session, `/start-phase 0`):
 * root `.gitignore`, `.env.example`, and `Makefile` (`help`, `build`, `run`, `test`, `fmt`, `vet` — all verified working);
 * minimal React frontend shell (`apps/web`): Vite + React + TypeScript + Tailwind CSS v4, ESLint (flat config), Vitest + Testing Library, React Router with a single route, a `PublicLayout` (skip link, header, footer), and a temporary `HomePage`.
 
+Also completed (2026-11-02, local environment increment):
+
+* `compose.yaml` + `compose.override.yaml` with postgres, redis, localstack (S3), keycloak (dedicated database), mailpit, api, and web, all with health checks;
+* `apps/api/Dockerfile` (multi-stage, non-root) and `apps/web/Dockerfile` (Vite dev target);
+* PostgreSQL migration workflow with golang-migrate ([ADR-0008](../../adr/0008-use-golang-migrate-for-migrations.md)) and a baseline migration;
+* seed workflow (`scripts/seed.sh`, `apps/api/seeds/`);
+* `/ready` checks PostgreSQL (`503` when unavailable); `DATABASE_URL` is required config;
+* Makefile: `bootstrap`, `up`, `down`, `restart`, `logs`, `ps`, `migrate`, `migrate-down`, `migrate-status`, `migrate-create`, `seed`, `test`, `lint`, `validate`, `reset`;
+* golangci-lint (v2, pinned Docker image) with `.golangci.yml`.
+
+Also completed (2026-11-09, Keycloak realm increment):
+
+* realm-as-code import (`infrastructure/keycloak/import/reptile-collection-realm.json`, [ADR-0009](../../adr/0009-keycloak-realm-as-code-and-role-ownership.md)): realm `reptile-collection`, coarse roles, public PKCE web client, API audience, three local test users, SMTP to Mailpit, stable issuer;
+* `make keycloak-check` (scripts/check-keycloak.sh) and `make keycloak-reimport`.
+
+Also completed (2026-11-09, Terraform local environment increment):
+
+* `infrastructure/terraform/modules/storage` (private media bucket: public access blocked, `BucketOwnerEnforced`, SSE AES256, versioning, multipart cleanup);
+* `infrastructure/terraform/environments/local` (LocalStack-only provider, dummy credentials, endpoint guard, local state, multi-platform lock file);
+* `make tf-init`, `tf-plan`, `tf-apply-local`, `tf-fmt`, `tf-validate`, `tf-lint`; Terraform checks added to `make lint`/`make validate`.
+
 Not started:
 
-* `compose.yaml` / Dockerfiles;
-* PostgreSQL and migrations;
-* `infrastructure/terraform` (local environment);
-* `infrastructure/keycloak`, `infrastructure/localstack`;
 * CI workflows;
+* OpenAPI baseline;
 * any connection between the frontend and the backend.
 
 ## Scope
@@ -80,11 +98,11 @@ See [`CLAUDE.md`](../../../CLAUDE.md) sections 25–26 for the authoritative del
 2. ~~Documentation foundation and initial ADRs~~ (this session).
 3. ~~Minimal Go API with `/health` and `/ready`~~ (this session).
 4. ~~Minimal React application shell~~ (this session).
-5. PostgreSQL + migration workflow.
-6. Docker Compose service definitions (Postgres, Redis, LocalStack, Keycloak, Mailpit, api, web).
-7. LocalStack S3 bucket initialization.
-8. Keycloak realm foundation (reproducible import).
-9. Terraform local-environment foundation (S3 bucket only, LocalStack-backed).
+5. ~~PostgreSQL + migration workflow~~ (2026-11-02).
+6. ~~Docker Compose service definitions (Postgres, Redis, LocalStack, Keycloak, Mailpit, api, web)~~ (2026-11-02).
+7. LocalStack S3 bucket initialization — to be done by Terraform (increment 9) rather than an init script, to avoid two sources of truth.
+8. ~~Keycloak realm foundation (reproducible import)~~ (2026-11-09).
+9. ~~Terraform local-environment foundation (S3 bucket only, LocalStack-backed)~~ (2026-11-09).
 10. CI workflows (backend quality, frontend quality, infrastructure quality).
 11. Clean-state validation and documentation update.
 
@@ -98,8 +116,8 @@ See [`CLAUDE.md`](../../../CLAUDE.md) sections 25–26 for the authoritative del
 * the `security` skill contains genuine security-standard content rather than a duplicate of `testing-quality` (met — this session, via `/fix-bug GOV-001`).
 * the backend builds, tests pass, and `/health`/`/ready` return `200` locally (met — this session).
 * the frontend shell type-checks, lints, tests, and builds, and serves a `200` response with correct semantic landmarks (met — this session).
-* (not yet met) `cp .env.example .env && make bootstrap && make up && make migrate && make seed && make validate && make test` succeeds from a clean checkout — `make build`/`make test`/`make run` succeed for the backend, and `npm run {typecheck,lint,test,build,dev}` succeed for the frontend; `bootstrap`/`up`/`migrate`/`seed`/`validate` do not exist yet.
-* (not yet met) frontend, backend, health, Keycloak, Mailpit, and LocalStack are reachable at their documented local URLs — backend, health/ready, and frontend are reachable; Keycloak, Mailpit, and LocalStack are not yet implemented.
+* (partially met) `cp .env.example .env && make bootstrap && make up && make migrate && make seed && make validate && make test` succeeds from a clean checkout — `up`, `migrate`, `seed`, `validate`, and `test` were verified on 2026-11-02 in the working copy; `bootstrap` and a fresh-clone run remain to be verified (increment 11).
+* (met, 2026-11-02) frontend, backend, health, Keycloak, Mailpit, and LocalStack are reachable at their documented local URLs.
 
 ## Validation Commands
 
@@ -129,7 +147,24 @@ npm run build
 npm run preview -- --port 4321 && curl http://localhost:4321/
 ```
 
-Not yet applicable: `docker compose config`, `terraform validate`, `sqlc generate` — no corresponding source exists yet.
+Also executed (local environment increment, 2026-11-02):
+
+```bash
+docker compose config -q
+make up                        # all 7 services healthy
+curl http://localhost:{3000,8080/health,8080/ready,8081,8025,4566/_localstack/health}
+make migrate && make migrate-status && make migrate-down && make migrate
+make migrate-create name=probe_test   # then removed
+make seed
+docker compose stop postgres && curl /ready   # 503; start postgres → 200
+make run                       # host API reached PostgreSQL on localhost:5433
+make reset                     # without CONFIRM=1: refuses
+make validate                  # gofmt, vet, golangci-lint (0 issues), eslint, tsc, tests, builds
+```
+
+Also executed (Terraform increment, 2026-11-09): `terraform fmt -check -recursive`, `terraform validate`, `tflint --recursive` (0 issues), `terraform plan/apply` against LocalStack (6 resources), bucket settings verified with the AWS CLI, re-plan with no drift, endpoint guard rejected `https://s3.amazonaws.com`, LocalStack restart → `make tf-apply-local` recreated the bucket.
+
+Not yet applicable: `sqlc generate` — no queries exist yet.
 
 ## Risks
 

@@ -1,6 +1,6 @@
 # Architecture — Containers
 
-Status: **Planned.** No container in this document currently exists in the repository (Phase 0 in progress).
+Status: **Partially implemented.** All containers below run locally via `compose.yaml` (Phase 0). The AWS counterparts (S3, Cognito, SES) are planned for Phase 6.
 
 ## Planned Containers
 

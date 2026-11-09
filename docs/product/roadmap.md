@@ -8,7 +8,7 @@ Status labels used below: `Not started`, `In progress`, `Complete`.
 
 ## Phase 0 — Foundation
 
-**Status:** In progress (governance and documentation foundation established; application implementation not started)
+**Status:** In progress — governance, documentation, minimal API and frontend, Docker Compose environment, and migrations done; Keycloak realm, Terraform, and CI pending. Live checklist: [ROADMAP.md](../../ROADMAP.md).
 
 **Objective:** Establish a reproducible local foundation: repository structure, Claude Code governance, minimal backend and frontend, database, local infrastructure services, initial Terraform structure, CI, tests, lint, and health checks.
 

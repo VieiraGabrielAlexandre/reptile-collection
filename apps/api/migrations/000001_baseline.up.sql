@@ -1,0 +1,5 @@
+-- Baseline migration (Phase 0).
+--
+-- Establishes the migration history for the application database. It creates
+-- no schema objects on purpose: the first domain tables (taxonomy, species,
+-- articles) belong to Phase 1 and must be modeled then, not speculatively now.

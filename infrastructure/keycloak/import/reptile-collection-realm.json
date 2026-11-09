@@ -1,0 +1,150 @@
+{
+  "realm": "reptile-collection",
+  "displayName": "Reptile Collection",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "verifyEmail": true,
+  "resetPasswordAllowed": true,
+  "rememberMe": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 300,
+  "passwordPolicy": "length(12) and notUsername and notEmail",
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "no-reply@reptile-collection.local",
+    "fromDisplayName": "Reptile Collection (local)",
+    "auth": "false",
+    "ssl": "false",
+    "starttls": "false"
+  },
+  "roles": {
+    "realm": [
+      {
+        "name": "member",
+        "description": "Registered user. Application permissions are resolved by the backend."
+      },
+      {
+        "name": "editor",
+        "description": "Creates and updates content drafts. Application permissions are resolved by the backend."
+      },
+      {
+        "name": "administrator",
+        "description": "Manages users and publishes content. Application permissions are resolved by the backend."
+      },
+      {
+        "name": "offline_access",
+        "description": "Keycloak built-in: offline tokens."
+      },
+      {
+        "name": "uma_authorization",
+        "description": "Keycloak built-in: UMA authorization."
+      },
+      {
+        "name": "default-roles-reptile-collection",
+        "description": "Roles granted to every new account.",
+        "composite": true,
+        "composites": {
+          "realm": ["member", "offline_access", "uma_authorization"]
+        }
+      }
+    ]
+  },
+  "defaultRole": {
+    "name": "default-roles-reptile-collection"
+  },
+  "clients": [
+    {
+      "clientId": "reptile-collection-web",
+      "name": "Reptile Collection web app",
+      "description": "React frontend. Public client: Authorization Code + PKCE, no secret.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "rootUrl": "http://localhost:3000",
+      "baseUrl": "/",
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "reptile-collection-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "reptile-collection-api",
+      "name": "Reptile Collection API",
+      "description": "Resource identifier for the Go API (token audience). No login flows.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [],
+      "webOrigins": []
+    }
+  ],
+  "users": [
+    {
+      "username": "member@example.test",
+      "email": "member@example.test",
+      "firstName": "Local",
+      "lastName": "Member",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "${KEYCLOAK_TEST_USER_PASSWORD}", "temporary": false }
+      ],
+      "realmRoles": ["default-roles-reptile-collection"]
+    },
+    {
+      "username": "editor@example.test",
+      "email": "editor@example.test",
+      "firstName": "Local",
+      "lastName": "Editor",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "${KEYCLOAK_TEST_USER_PASSWORD}", "temporary": false }
+      ],
+      "realmRoles": ["default-roles-reptile-collection", "editor"]
+    },
+    {
+      "username": "admin@example.test",
+      "email": "admin@example.test",
+      "firstName": "Local",
+      "lastName": "Administrator",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "${KEYCLOAK_TEST_USER_PASSWORD}", "temporary": false }
+      ],
+      "realmRoles": ["default-roles-reptile-collection", "administrator"]
+    }
+  ]
+}

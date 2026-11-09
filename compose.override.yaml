@@ -1,0 +1,9 @@
+# Developer conveniences, applied automatically by `docker compose`.
+# Mounts the frontend source so Vite hot reload works inside the container.
+# The anonymous volume keeps the image's node_modules instead of the host's.
+
+services:
+  web:
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules

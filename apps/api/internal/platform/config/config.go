@@ -11,6 +11,14 @@ type Config struct {
 	Environment string
 	HTTP        HTTPConfig
 	Log         LogConfig
+	Database    DatabaseConfig
+}
+
+// DatabaseConfig configures the PostgreSQL connection.
+type DatabaseConfig struct {
+	// URL is a PostgreSQL connection string. It contains credentials and
+	// must never be logged.
+	URL string
 }
 
 // HTTPConfig configures the HTTP server.
@@ -41,6 +49,9 @@ func Load() (Config, error) {
 		Log: LogConfig{
 			Level: getEnv("LOG_LEVEL", "info"),
 		},
+		Database: DatabaseConfig{
+			URL: os.Getenv("DATABASE_URL"),
+		},
 	}
 
 	if err := cfg.validate(); err != nil {
@@ -57,6 +68,10 @@ func (c Config) validate() error {
 
 	if _, ok := allowedLogLevels[c.Log.Level]; !ok {
 		return fmt.Errorf("LOG_LEVEL %q is not one of debug, info, warn, error", c.Log.Level)
+	}
+
+	if c.Database.URL == "" {
+		return fmt.Errorf("DATABASE_URL must be set")
 	}
 
 	return nil

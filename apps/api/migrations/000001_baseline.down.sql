@@ -1,0 +1,1 @@
+-- Baseline migration (Phase 0): nothing to revert.

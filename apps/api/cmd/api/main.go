@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/VieiraGabrielAlexandre/reptile-collection/apps/api/internal/platform/config"
+	"github.com/VieiraGabrielAlexandre/reptile-collection/apps/api/internal/platform/database"
 	"github.com/VieiraGabrielAlexandre/reptile-collection/apps/api/internal/platform/httpserver"
 )
 
@@ -33,7 +34,13 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	router := httpserver.NewRouter(logger)
+	pool, err := database.NewPool(ctx, cfg.Database.URL)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	router := httpserver.NewRouter(logger, pool)
 
 	return httpserver.Run(ctx, logger, ":"+cfg.HTTP.Port, router)
 }

@@ -1,0 +1,6 @@
+bin/
+*.test
+*.out
+migrations/
+seeds/
+Dockerfile
